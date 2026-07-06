@@ -13,7 +13,7 @@
 CREATE TABLE account (
     id          VARCHAR(64)   PRIMARY KEY,
     owner_id    VARCHAR(64)   NOT NULL,
-    currency    CHAR(3)       NOT NULL,
+    currency    VARCHAR(3)    NOT NULL,
     status      VARCHAR(16)   NOT NULL,
     created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
     version     BIGINT        NOT NULL DEFAULT 0,
