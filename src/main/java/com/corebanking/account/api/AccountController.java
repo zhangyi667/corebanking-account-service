@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -42,5 +48,18 @@ public class AccountController {
     @PatchMapping("/accounts/{id}/status")
     public AccountResponse updateStatus(@PathVariable String id, @Valid @RequestBody UpdateStatusRequest req) {
         return AccountResponse.of(service.updateStatus(id, req.status()));
+    }
+
+    @PostMapping("/accounts:check")
+    public AccountCheckResponse check(@Valid @RequestBody AccountCheckRequest req) {
+        List<Account> found = service.check(req.ids());
+        Map<String, AccountResponse> byId = found.stream()
+                .collect(Collectors.toMap(Account::getId, AccountResponse::of));
+        Set<String> foundIds = new HashSet<>(byId.keySet());
+        List<String> missing = req.ids().stream()
+                .filter(id -> !foundIds.contains(id))
+                .distinct()
+                .toList();
+        return new AccountCheckResponse(byId, missing);
     }
 }

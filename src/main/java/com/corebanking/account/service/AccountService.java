@@ -6,6 +6,8 @@ import com.corebanking.account.repo.AccountRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,6 +26,10 @@ public class AccountService {
 
     public Optional<Account> get(String accountId) {
         return repo.findById(accountId);
+    }
+
+    public List<Account> check(Collection<String> ids) {
+        return repo.findAllByIdIn(ids);
     }
 
     public Account updateStatus(String accountId, AccountStatus newStatus) {

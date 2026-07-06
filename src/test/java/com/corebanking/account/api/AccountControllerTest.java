@@ -100,6 +100,27 @@ class AccountControllerTest {
     }
 
     @Test
+    void checkReturnsMatchedAndMissing() throws Exception {
+        Account acc1 = new Account("acc-001", "cust-42", "USD", AccountStatus.ACTIVE,
+                Instant.parse("2026-07-06T10:00:00Z"));
+        Account acc2 = new Account("acc-002", "cust-42", "USD", AccountStatus.FROZEN,
+                Instant.parse("2026-07-06T10:00:00Z"));
+        when(service.check(java.util.List.of("acc-001", "acc-002", "acc-missing")))
+                .thenReturn(java.util.List.of(acc1, acc2));
+
+        mvc.perform(post("/api/v1/accounts:check")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"ids":["acc-001","acc-002","acc-missing"]}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accounts['acc-001'].status").value("ACTIVE"))
+                .andExpect(jsonPath("$.accounts['acc-002'].status").value("FROZEN"))
+                .andExpect(jsonPath("$.accounts['acc-missing']").doesNotExist())
+                .andExpect(jsonPath("$.missing[0]").value("acc-missing"));
+    }
+
+    @Test
     void patchStatusReturns404ForUnknownAccount() throws Exception {
         when(service.updateStatus("acc-missing", AccountStatus.FROZEN))
                 .thenThrow(new com.corebanking.account.service.AccountNotFoundException("acc-missing"));
