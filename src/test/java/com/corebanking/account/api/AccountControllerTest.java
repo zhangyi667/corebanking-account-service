@@ -18,6 +18,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -79,5 +80,35 @@ class AccountControllerTest {
         mvc.perform(get("/api/v1/accounts/acc-missing"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("ACCOUNT_NOT_FOUND"));
+    }
+
+    @Test
+    void patchStatusReturnsUpdatedAccount() throws Exception {
+        Account frozen = new Account("acc-001", "cust-42", "USD", AccountStatus.FROZEN,
+                Instant.parse("2026-07-06T10:00:00Z"));
+        when(service.updateStatus("acc-001", AccountStatus.FROZEN)).thenReturn(frozen);
+
+        mvc.perform(patch("/api/v1/accounts/acc-001/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"status":"FROZEN"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("FROZEN"));
+
+        verify(service).updateStatus("acc-001", AccountStatus.FROZEN);
+    }
+
+    @Test
+    void patchStatusReturns404ForUnknownAccount() throws Exception {
+        when(service.updateStatus("acc-missing", AccountStatus.FROZEN))
+                .thenThrow(new com.corebanking.account.service.AccountNotFoundException("acc-missing"));
+
+        mvc.perform(patch("/api/v1/accounts/acc-missing/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"status":"FROZEN"}
+                                """))
+                .andExpect(status().isNotFound());
     }
 }

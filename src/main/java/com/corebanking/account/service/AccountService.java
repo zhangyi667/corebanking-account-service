@@ -25,4 +25,11 @@ public class AccountService {
     public Optional<Account> get(String accountId) {
         return repo.findById(accountId);
     }
+
+    public Account updateStatus(String accountId, AccountStatus newStatus) {
+        Account a = repo.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException(accountId));
+        a.setStatus(newStatus);
+        return repo.save(a);
+    }
 }
