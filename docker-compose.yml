@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: account-postgres
+    environment:
+      POSTGRES_DB: account_service
+      POSTGRES_USER: account
+      POSTGRES_PASSWORD: account
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U account"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
