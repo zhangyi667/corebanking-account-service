@@ -17,6 +17,7 @@ import java.time.Instant;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,5 +58,26 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.status").value("ACTIVE"));
 
         verify(service).create(eq("acc-001"), eq("cust-42"), eq("USD"));
+    }
+
+    @Test
+    void getReturns200ForExistingAccount() throws Exception {
+        Account acc = new Account("acc-001", "cust-42", "USD", AccountStatus.ACTIVE,
+                Instant.parse("2026-07-06T10:00:00Z"));
+        when(service.get("acc-001")).thenReturn(java.util.Optional.of(acc));
+
+        mvc.perform(get("/api/v1/accounts/acc-001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accountId").value("acc-001"))
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
+    void getReturns404ForUnknownAccount() throws Exception {
+        when(service.get("acc-missing")).thenReturn(java.util.Optional.empty());
+
+        mvc.perform(get("/api/v1/accounts/acc-missing"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("ACCOUNT_NOT_FOUND"));
     }
 }

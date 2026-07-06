@@ -1,5 +1,6 @@
 package com.corebanking.account.api;
 
+import com.corebanking.account.service.AccountNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,11 @@ public class ApiExceptionHandler {
                 .map(f -> f.getField() + ": " + f.getDefaultMessage())
                 .collect(Collectors.joining("; "));
         return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", msg);
+    }
+
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(AccountNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, "ACCOUNT_NOT_FOUND", e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
