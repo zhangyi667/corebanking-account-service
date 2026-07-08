@@ -14,8 +14,27 @@ spring:
   flyway:
     enabled: true
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:corebanking-account-service}
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+        delivery.timeout.ms: 120000
+
 server:
   port: 8082
+
+app:
+  kafka:
+    topics:
+      posting-transaction: posting.transaction
+      account-balance: account.balance
 
 management:
   endpoints:

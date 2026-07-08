@@ -1,6 +1,7 @@
 package com.corebanking.account.api;
 
 import com.corebanking.account.domain.Account;
+import com.corebanking.account.repo.BalanceRepository;
 import com.corebanking.account.service.AccountNotFoundException;
 import com.corebanking.account.service.AccountService;
 import jakarta.validation.Valid;
@@ -26,9 +27,11 @@ import java.util.stream.Collectors;
 public class AccountController {
 
     private final AccountService service;
+    private final BalanceRepository balances;
 
-    public AccountController(AccountService service) {
+    public AccountController(AccountService service, BalanceRepository balances) {
         this.service = service;
+        this.balances = balances;
     }
 
     @PostMapping("/accounts")
@@ -48,6 +51,13 @@ public class AccountController {
     @PatchMapping("/accounts/{id}/status")
     public AccountResponse updateStatus(@PathVariable String id, @Valid @RequestBody UpdateStatusRequest req) {
         return AccountResponse.of(service.updateStatus(id, req.status()));
+    }
+
+    @GetMapping("/accounts/{id}/balance")
+    public BalanceResponse balance(@PathVariable String id) {
+        return balances.findById(id)
+                .map(BalanceResponse::of)
+                .orElseThrow(() -> new AccountNotFoundException(id));
     }
 
     @PostMapping("/accounts:check")
